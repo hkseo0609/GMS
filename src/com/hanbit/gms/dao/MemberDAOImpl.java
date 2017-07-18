@@ -2,30 +2,34 @@ package com.hanbit.gms.dao;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.hanbit.gms.constants.DB;
+import com.hanbit.gms.constants.SQL;
+import com.hanbit.gms.constants.Vendor;
 import com.hanbit.gms.domain.MemberBean;
+import com.hanbit.gms.factory.DatabaseFactory;
 
 public class MemberDAOImpl implements MemberDAO{
-	public MemberDAOImpl(){
-		try {
-			Class.forName(DB.DRIVER);
-		} catch (ClassNotFoundException e) {
-			System.out.println("drive load fail...");
-			e.printStackTrace();
-		}
+	/*싱글턴 패턴 static으로 dao 미리 생성
+	public static MemberDAOImpl instance = new MemberDAOImpl();*/
+	public static MemberDAOImpl getInstance() {
+		return new MemberDAOImpl();
+	}
+
+	private MemberDAOImpl(){
 	}
 
 	@Override
 	public List<MemberBean> selectAll() {
 		List<MemberBean> list = new ArrayList<>();
-		
 		try {
-			ResultSet rs = DriverManager.getConnection(DB.URL,DB.USERID,DB.PASSWORD).createStatement().executeQuery(String.format("SELECT * FROM MEMBER"));
+			ResultSet rs = DatabaseFactory.createDatabse(Vendor.ORACLE, DB.USERNAME, DB.PASSWORD).getConnection().prepareStatement(SQL.MEMBER_LIST).executeQuery();
 			MemberBean member = null;
 			while(rs.next()){
 				member = new MemberBean();
@@ -44,10 +48,11 @@ public class MemberDAOImpl implements MemberDAO{
 	}
 
 	@Override
-	public int count() {
+	public String count() {
 		int count=0;
 		try {
-			ResultSet rs = DriverManager.getConnection(DB.URL,DB.USERID,DB.PASSWORD).createStatement().executeQuery(String.format("SELECT COUNT(*)AS count FROM MEMBER"));
+			ResultSet rs=DatabaseFactory.createDatabse(Vendor.ORACLE, DB.USERNAME, DB.PASSWORD).getConnection().prepareStatement(SQL.MEMBER_COUNT).executeQuery();
+
 			if(rs.next()){
 				count = Integer.valueOf(rs.getString("count"));
 			}
@@ -55,22 +60,25 @@ public class MemberDAOImpl implements MemberDAO{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return count;
+		return String.valueOf(count);
 	}
 
 	@Override
-	public int insert(MemberBean member) {
+	public String insert(MemberBean member) {
 		int rs=0;
 		try {
-			Connection conn = DriverManager.getConnection(DB.URL,DB.USERID,DB.PASSWORD);
-			Statement stmt = conn.createStatement();
-			rs = stmt.executeUpdate(String.format("insert into %s values('%s', '%s', '%s', '%s', SYSDATE)",DB.TABLE_MEMBER,member.getId(),member.getPwd(),member.getName(),member.getSsn()));
+			PreparedStatement pstmt = DatabaseFactory.createDatabse(Vendor.ORACLE, DB.USERNAME, DB.PASSWORD).getConnection().prepareStatement(SQL.MEMBER_INSERT);
+			pstmt.setString(1,member.getId());
+			pstmt.setString(2,member.getPwd());
+			pstmt.setString(3,member.getName());
+			pstmt.setString(4,member.getSsn());
+			rs = pstmt.executeUpdate();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		return rs;
+		return String.valueOf(rs);
 		
 		
 	}
@@ -79,10 +87,9 @@ public class MemberDAOImpl implements MemberDAO{
 	public MemberBean selectByid(String id) {
 		MemberBean member = new MemberBean();
 		try {
-			Connection conn = DriverManager.getConnection(DB.URL,DB.USERID,DB.PASSWORD);
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(String.format("SELECT * FROM MEMBER WHERE id='%s'",id));
-			
+			PreparedStatement pstmt = DatabaseFactory.createDatabse(Vendor.ORACLE, DB.USERNAME, DB.PASSWORD).getConnection().prepareStatement(SQL.MEMBER_FINDBYID);
+			pstmt.setString(1, id);
+			ResultSet rs = pstmt.executeQuery();
 			if(rs.next()){
 				member.setId(rs.getString(DB.MEM_ID));
 				member.setName(rs.getString(DB.MEM_NAME));
@@ -101,7 +108,9 @@ public class MemberDAOImpl implements MemberDAO{
 	public List<MemberBean> selectByName(String name) {
 		List<MemberBean> list = new ArrayList<>();
 		try {
-			ResultSet rs = DriverManager.getConnection(DB.URL,DB.USERID,DB.PASSWORD).createStatement().executeQuery(String.format("SELECT * FROM MEMBER WHERE name='%s'",name));
+			PreparedStatement pstmt = DatabaseFactory.createDatabse(Vendor.ORACLE, DB.USERNAME, DB.PASSWORD).getConnection().prepareStatement(SQL.MEMBER_FINDBYNAME);
+			pstmt.setString(1, name);
+			ResultSet rs = pstmt.executeQuery();
 			MemberBean member = null;
 			while(rs.next()){
 				member = new MemberBean();
@@ -111,7 +120,6 @@ public class MemberDAOImpl implements MemberDAO{
 				member.setRegdate(rs.getString(DB.MEM_REGDATE));
 				list.add(member);
 			}
-			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -120,12 +128,13 @@ public class MemberDAOImpl implements MemberDAO{
 	}
 
 	@Override
-	public int update(MemberBean bean) {
-		int rs=0;
+	public String update(MemberBean bean) {
+		String rs="";
 		try {
-			rs = DriverManager.getConnection(DB.URL,DB.USERID,DB.PASSWORD).createStatement().executeUpdate(
-					String.format("insert into %s values('%s', '%s', '%s', '%s', SYSDATE)",DB.TABLE_MEMBER,bean.getId(),bean.getPwd(),bean.getName(),bean.getSsn()));
-			
+			PreparedStatement pstmt = DatabaseFactory.createDatabse(Vendor.ORACLE, DB.USERNAME, DB.PASSWORD).getConnection().prepareStatement(SQL.MEMBER_UPDATE);
+			pstmt.setString(1, bean.getPwd());
+			pstmt.setString(2, bean.getId());
+			rs=String.valueOf(pstmt.executeUpdate());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -135,12 +144,12 @@ public class MemberDAOImpl implements MemberDAO{
 	}
 
 	@Override
-	public int delete(String id) {
-		int rs=0;
+	public String delete(String id) {
+		String rs="";
 		try {
-			Connection conn = DriverManager.getConnection(DB.URL,DB.USERID,DB.PASSWORD);
-			Statement stmt = conn.createStatement();
-			rs = stmt.executeUpdate(String.format("%s",""));
+			PreparedStatement pstmt = DatabaseFactory.createDatabse(Vendor.ORACLE, DB.USERNAME, DB.PASSWORD).getConnection().prepareStatement(SQL.MEMBER_DELETE);
+			pstmt.setString(1, id);
+			rs = String.valueOf(pstmt.executeUpdate());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

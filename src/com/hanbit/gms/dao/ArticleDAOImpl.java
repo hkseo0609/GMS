@@ -1,48 +1,50 @@
 package com.hanbit.gms.dao;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.hanbit.gms.constants.DB;
+import com.hanbit.gms.constants.SQL;
+import com.hanbit.gms.constants.Vendor;
 import com.hanbit.gms.domain.ArticleBean;
+import com.hanbit.gms.factory.DatabaseFactory;
 
 public class ArticleDAOImpl implements ArticleDAO {
-	public ArticleDAOImpl() {
-		try {
-			Class.forName(DB.DRIVER);
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	//public static ArticleDAOImpl instance = new ArticleDAOImpl();
+	
+	public static ArticleDAOImpl getInstance() {
+
+		return new ArticleDAOImpl();
 	}
+	
+	private ArticleDAOImpl() {}
 
 	@Override
-	public int insert(ArticleBean bean) {
+	public String insert(ArticleBean bean) {
 		int rs=0;
 		try {
-			Connection conn = DriverManager.getConnection(DB.URL, DB.USERID, DB.PASSWORD);
-			Statement stmt = conn.createStatement();
-			rs = stmt.executeUpdate(String.format("insert into board values(article_seq.nextval,0,'%s','%s','%s',sysdate)", bean.getId(), bean.getTitle(), bean.getContent()));
+			PreparedStatement pstmt = DatabaseFactory.createDatabse(Vendor.ORACLE, DB.USERNAME, DB.PASSWORD).getConnection().prepareStatement(SQL.BOARD_INSERT);
+			pstmt.setString(1, bean.getId());
+			pstmt.setString(2, bean.getTitle());
+			pstmt.setString(3, bean.getContent());
+			rs = pstmt.executeUpdate();
+			System.out.println(SQL.BOARD_INSERT);
+		
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		return rs;
+		return String.valueOf(rs);
 	}
 
 	@Override
 	public List<ArticleBean> selectAll() {
 		List<ArticleBean> list = new ArrayList<>();
 		try {
-			Connection conn = DriverManager.getConnection(DB.URL,DB.USERID,DB.PASSWORD);
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(String.format("SELECT * FROM board"));
+			PreparedStatement pstmt = DatabaseFactory.createDatabse(Vendor.ORACLE, DB.USERNAME, DB.PASSWORD).getConnection().prepareStatement(SQL.BOARD_LIST);
+			ResultSet rs = pstmt.executeQuery();
 			ArticleBean bean = null; 
 			while(rs.next()){
 				bean = new ArticleBean();
@@ -58,7 +60,6 @@ public class ArticleDAOImpl implements ArticleDAO {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 		return list;
 	}
 
@@ -66,9 +67,9 @@ public class ArticleDAOImpl implements ArticleDAO {
 	public List<ArticleBean> selectByid(String id) {
 		List<ArticleBean> list = new ArrayList<>();
 		try {
-			Connection conn = DriverManager.getConnection(DB.URL,DB.USERID,DB.PASSWORD);
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(String.format("SELECT * FROM board WHERE id='%s'", id));
+			PreparedStatement pstmt = DatabaseFactory.createDatabse(Vendor.ORACLE, DB.USERNAME, DB.PASSWORD).getConnection().prepareStatement(SQL.BOARD_FINDBYID);
+			pstmt.setString(1, id);
+			ResultSet rs = pstmt.executeQuery();
 			ArticleBean bean = null; 
 			while(rs.next()){
 				bean = new ArticleBean();
@@ -80,7 +81,7 @@ public class ArticleDAOImpl implements ArticleDAO {
 				bean.setRegdate(rs.getString("regdate"));
 				list.add(bean);
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -90,11 +91,10 @@ public class ArticleDAOImpl implements ArticleDAO {
 	@Override
 	public ArticleBean selectBySeq(String seq) {
 		ArticleBean bean = new ArticleBean();
-		
 		try {
-			Connection conn = DriverManager.getConnection(DB.URL,DB.USERID,DB.PASSWORD);
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(String.format("SELECT * FROM board WHERE article_seq='%s'", seq));
+			PreparedStatement pstmt = DatabaseFactory.createDatabse(Vendor.ORACLE, DB.USERNAME, DB.PASSWORD).getConnection().prepareStatement(SQL.BOARD_FINDBYSEQ);
+			pstmt.setString(1, seq);
+			ResultSet rs = pstmt.executeQuery();
 			if(rs.next()){
 				bean.setArticleSeq(rs.getInt("article_seq"));
 				bean.setHitcount(rs.getInt("hitcount"));
@@ -111,14 +111,13 @@ public class ArticleDAOImpl implements ArticleDAO {
 	}
 
 	@Override
-	public int count() {
-		int count = 0;
+	public String count() {
+		String count = "";
 		try {
-			Connection conn = DriverManager.getConnection(DB.URL,DB.USERID,DB.PASSWORD);
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery(String.format("SELECT COUNT(*)AS count FROM board"));
+			PreparedStatement pstmt = DatabaseFactory.createDatabse(Vendor.ORACLE, DB.USERNAME, DB.PASSWORD).getConnection().prepareStatement(SQL.BOARD_COUNT);
+			ResultSet rs = pstmt.executeQuery();
 			if(rs.next()){
-				count = Integer.valueOf(rs.getString("count"));
+				count = rs.getString("count");
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -129,17 +128,30 @@ public class ArticleDAOImpl implements ArticleDAO {
 
 	@Override
 	public String update(ArticleBean bean) {
-		// TODO Auto-generated method stub
-		return null;
+		String rs="";
+		ArticleBean temp = selectBySeq(String.valueOf(bean.getArticleSeq()));
+		String title = (bean.getTitle().equals(""))?temp.getTitle():bean.getTitle();
+		String content = (bean.getContent().equals(""))?temp.getContent():bean.getContent();
+		try {
+			PreparedStatement pstmt = DatabaseFactory.createDatabse(Vendor.ORACLE, DB.USERNAME, DB.PASSWORD).getConnection().prepareStatement(SQL.BOARD_UPDATE);
+		    pstmt.setString(1, title);
+		    pstmt.setString(2, content);
+		    pstmt.setInt(3, bean.getArticleSeq());
+			rs = String.valueOf(pstmt.executeUpdate());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return rs;
 	}
 
 	@Override
-	public int delete(String seq) {
-		int rs=0;
+	public String delete(String seq) {
+		String rs="";
 		try {
-			Connection conn = DriverManager.getConnection(DB.URL,DB.USERID,DB.PASSWORD);
-			Statement stmt = conn.createStatement();
-			rs = stmt.executeUpdate(String.format("delete * from board where article_seq='%s'",seq));
+			PreparedStatement pstmt = DatabaseFactory.createDatabse(Vendor.ORACLE, DB.USERNAME, DB.PASSWORD).getConnection().prepareStatement(SQL.BOARD_DELETE);
+			pstmt.setString(1, seq);
+			rs = String.valueOf(pstmt.executeUpdate());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

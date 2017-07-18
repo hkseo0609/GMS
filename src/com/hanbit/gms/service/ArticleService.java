@@ -9,7 +9,7 @@ public interface ArticleService {
 	public List<ArticleBean> list();
 	public List<ArticleBean> findByid(String id);
 	public ArticleBean findBySeq(String seq);
-	public int count();
+	public String count();
 	public String modfiy(ArticleBean bean);
 	public String remove(String seq);
 

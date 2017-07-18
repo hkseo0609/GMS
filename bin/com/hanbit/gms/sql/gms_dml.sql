@@ -1,6 +1,3 @@
-SELECT * FROM MEMBER;
-SELECT * FROM MEMBER WHERE name = '유선호';
-
 INSERT INTO Member(id, pwd, name, ssn, regdate)
 VALUES('you', '1234', '유선호', '020101-1234567', SYSDATE);
 INSERT INTO Member(id, pwd, name, ssn, regdate)
@@ -16,9 +13,17 @@ insert into Member(id,pwd,name,ssn,regdate) values('bo','1234','박보영','9002
 insert into Member(id,pwd,name,ssn,regdate) values('se','1234','정세운','970101-2345678',sysdate);
 insert into Member(id,pwd,name,ssn,regdate) values('shin','1234','신세경','890101-2345678',sysdate);
 
+SELECT * FROM MEMBER;
+SELECT * FROM MEMBER WHERE id = 'seo';
+UPDATE MEMBER
+SET pwd='22222'
+WHERE id='you';
+DELETE FROM MEMBER WHERE id='seo';
+
+
 SELECT * FROM board;
 SELECT COUNT(*)AS count FROM board;
-delete * from board where article_seq='1017';
+delete from board where article_seq='1017';
 insert into board values(article_seq.nextval, 0,'you','유선호의 글','꽃 봄바람을 무엇이 뿐이다.',sysdate);
 insert into board values(article_seq.nextval, 0,'shin','신세경의 글','날의 두손을 있는 우리의 가슴이 칼이다.',sysdate);
 insert into board values(article_seq.nextval, 0,'you','유선호의 글2','길을 미묘한 피어나기 대한 있는 구하지 것이다.',sysdate);
@@ -31,3 +36,8 @@ insert into board values(article_seq.nextval, 0,'ra','라이관린의 글','창�
 insert into board values(article_seq.nextval, 0,'bo','박보영의 글','듣기만 꾸며 소담스러운 열락의 피는 약동하다.',sysdate);
 insert into board values(article_seq.nextval, 0,'park','박지훈의 글','아름답고 대고, 인간은 피고, 그들을 위하여, 안고, 봄바람이다',sysdate);
 insert into board values(article_seq.nextval, 0,'kyoung','경리의 글 2','갑 새 들어 청춘이 목숨을 두기 아름다우냐?',sysdate);
+UPDATE BOARD
+SET title='수정된 내용', content='수정된 내용'
+WHERE article_seq='1000';
+
+

@@ -9,7 +9,7 @@ import com.hanbit.gms.constants.DB;
 
 public class JDBCTest {
 	public static void main(String[] args){
-		String findName = "";
+		/*String findName = "";
 		Connection conn = null;
 		try {
 			Class.forName(DB.DRIVER);
@@ -25,7 +25,7 @@ public class JDBCTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println("### 결과 "+findName);
+		System.out.println("### 결과 "+findName);*/
 	}
 
 }

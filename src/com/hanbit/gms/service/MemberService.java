@@ -9,7 +9,7 @@ public interface MemberService {
 	//public MemberBean[] getMembers();
 	public List<MemberBean> getMembers();
 	//회원수 구하는 것 / getter
-	public int countMembers();
+	public String countMembers();
 	//회원 가입(join)시키는 것 / setter
 	public String addMember(MemberBean member);
 	public MemberBean findByid(String id);

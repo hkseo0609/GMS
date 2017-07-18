@@ -6,11 +6,11 @@ import com.hanbit.gms.domain.MemberBean;
 
 public interface MemberDAO {
 	public List<MemberBean> selectAll();
-	public int count();
-	public int insert(MemberBean member);
+	public String count();
+	public String insert(MemberBean member);
 	public MemberBean selectByid(String id);
 	public List<MemberBean> selectByName(String name);
-	public int update(MemberBean bean);
-	public int delete(String id);
+	public String update(MemberBean bean);
+	public String delete(String id);
 
 }

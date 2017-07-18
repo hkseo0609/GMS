@@ -6,55 +6,51 @@ import com.hanbit.gms.dao.ArticleDAO;
 import com.hanbit.gms.dao.ArticleDAOImpl;
 import com.hanbit.gms.domain.ArticleBean;
 public class ArticleServiceImpl implements ArticleService{
-
+	public static ArticleServiceImpl instance = new ArticleServiceImpl();
+	public static ArticleServiceImpl getInstance() {
+		return instance;
+	}
+	private ArticleServiceImpl() {}
+	
+	@Override
+	public List<ArticleBean> list() {
+		return ArticleDAOImpl.getInstance().selectAll();
+	}
+	
 	@Override
 	public String write(ArticleBean bean) {
-		String msg = "";
-		ArticleDAO dao = new ArticleDAOImpl();
-		int result = dao.insert(bean);
-		if(result==1){
-			msg = "등록되었습니다.";
-		}else{
-			msg = "등록에 실패하였습니다.";
-		}
+		String result = ArticleDAOImpl.getInstance().insert(bean);
+		String msg = (Integer.parseInt(result)==1)?"등록되었습니다.":"등록에 실패하였습니다.";
 		return msg;
 	}
 
 	@Override
-	public List<ArticleBean> list() {
-		return new ArticleDAOImpl().selectAll();
-	}
-
-	@Override
 	public List<ArticleBean> findByid(String id) {
-		return new ArticleDAOImpl().selectByid(id);
+		return ArticleDAOImpl.getInstance().selectByid(id);
 	}
 
 	@Override
 	public ArticleBean findBySeq(String seq) {
-		return new ArticleDAOImpl().selectBySeq(seq);
+		return ArticleDAOImpl.getInstance().selectBySeq(seq);
 	}
 
 	@Override
-	public int count() {
-		return new ArticleDAOImpl().count();
+	public String count() {
+		return ArticleDAOImpl.getInstance().count();
 	}
 
 	@Override
 	public String modfiy(ArticleBean bean) {
-		return null;
+		String msg="";
+		String result = ArticleDAOImpl.getInstance().update(bean);
+		msg = (result.equals("1"))?"수정 완료":"수정 실패";
+		return msg;
 	}
 
 	@Override
 	public String remove(String seq) {
-		String msg = "";
-		ArticleDAO dao = new ArticleDAOImpl();
-		int result = dao.delete(seq);
-		if(result==1){
-			msg = "삭제되었습니다.";
-		}else{
-			msg = "삭제에 실패하였습니다.";
-		}
+		String result = ArticleDAOImpl.getInstance().delete(seq);
+		String msg = (Integer.parseInt(result)==1) ? "삭제되었습니다." : "삭제에 실패하였습니다.";
 		return msg;
 	}
 
